@@ -3,3 +3,4 @@ tensorflow
 pandas
 matplotlib
 scikit-learn
+ipykernel # added For Jupyter notebook support
