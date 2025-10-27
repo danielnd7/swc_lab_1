@@ -4,3 +4,5 @@ pandas
 matplotlib
 scikit-learn
 ipykernel # added For Jupyter notebook support
+pyqt5 # added For matplotlib qt backend support (onens plots in external window)
+ipympl # same as above but for widget backend in Jupyter notebooks
