@@ -19,18 +19,49 @@ plt.show()
 
 # Crear las ventanas temporales
 # Lo que se predice (y) es el "siguiente" valor de la secuencia
-# pasando la ventana actual que tenemos.
+# pasando la ventana actual que tenemos.\
+# split a univariate sequence into samples
+def split_sequence(sequence, n_steps):
+	X, y = list(), list()
+	for i in range(len(sequence)):
+		# find the end of this pattern
+		end_ix = i + n_steps
+		# check if we are beyond the sequence
+		if end_ix > len(sequence)-1:
+			break
+		# gather input and output parts of the pattern
+		seq_x, seq_y = sequence[i:end_ix], sequence[end_ix]
+		X.append(seq_x)
+		y.append(seq_y)
+	return np.array(X), np.array(y)
 
-# Dividir los datos en entrenamiento y prueba es lo habitual
-# Aunque en este caso, vamos a querer luego detectar anomalías en todos los datos
 
 # Redimensionar los datos para la RNN
+# define input sequence
+raw_seq = df['value'].to_numpy() # convertimos la columna del df a array numpy
+# raw_seq = [10, 20, 30, 40, 50, 60, 70, 80, 90]
+# choose a number of time steps 
+n_steps = 3 # definicion del tamanio de la ventana
+# split into samples
+X, y = split_sequence(raw_seq, n_steps)
+
 # LSTM espera 3 dimensiones: número muestras, pasos temporales, número features
 # P.ej: (5805,10,1)
+n_features = 1 # analizamos una sola variable (temperatura)
+X = X.reshape((X.shape[0], X.shape[1], n_features))
+
 
 # Crear la RNN
+# define model (Crear la RNN)
+model = Sequential()
+model.add(Input(shape=(n_steps, n_features)))
+model.add(LSTM(50, activation='relu'))
+model.add(Dense(1))
+model.compile(optimizer='adam', loss='mse')
 
 # Entrenar la RNN
+# fit model (Entrenar la RNN)
+model.fit(X, y, epochs=200)
 
 # Un posible criterio de anomalía
 # Calcular el error absoluto medio (MAE) de los "siguientes" valores de cada secuencia y los valores predichos
@@ -43,7 +74,7 @@ plt.show()
 # las anomalias se refieren a las ventanas, no a filas específicas dentro de la ventana
 
 # Mostrar la gráfica con las anomalías
-windows_size=10
+windows_size=10 # the number of initial values ignored for prediction
 
 fechas_test=df[windows_size:].index.to_numpy() # aquí tengo array con fechas de los datos de test
 
@@ -58,6 +89,7 @@ plt.plot(fechas_test,y_test,color='blue',label='y_test')
 plt.scatter(x=fechas_test, y=y_test, c='red', alpha=anomalies.astype(int),s=50)
 plt.legend()
 plt.show()
+
 
 # Opcion 2
 # fechas_test = df.drop(df.index[:windows_size]) # Eliminar las primeras filas
